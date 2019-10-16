@@ -16,7 +16,6 @@ void setup() {
   // configure the sensors
   qtr.setTypeRC();
   qtr.setSensorPins((const uint8_t[]){2, 5}, SensorCount);
-  qtr.setEmitterPin(2);
   
   Serial.begin(9600);
   
@@ -63,8 +62,8 @@ void left_wheel_isr() {
 void loop() {
   qtr.read(sensorValues);
 
-//  Serial.print(left_count);
-//  Serial.println();
+  Serial.print(left_count);
+  Serial.println();
 
 
   delay(100);
