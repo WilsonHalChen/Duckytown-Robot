@@ -1,12 +1,21 @@
 #include <QTRSensors.h>
+#include <math.h> 
 
 QTRSensors qtr;
 
+const long WHEEL_BASE = 12000; // width between wheels (in μm? smaller units are useful to avoid floats)
+const long WHEEL_RADIUS = 3500; // should be same unit as WHEEL_BASE
+//const uint8_t NUM_DIVISIONS
 const uint8_t SensorCount = 4;
 uint16_t sensorValues[SensorCount];
 
+volatile long prev_left_count = 0;
 volatile long left_count = 0; // track # of left wheel movements, CCW is positive
+volatile long prev_right_count = 0;
 volatile long right_count = 0; // track # of right wheel movements
+volatile long x_world = 0; // x pos in world frame (in μm? should be same as WHEEL_BASE)
+volatile long y_world = 0; // y pos in world frame (in μm? should be same as WHEEL_BASE)
+volatile long theta_world = 0; // angle pos in world frame (in rads?)
 
 
 void setup() {
@@ -59,12 +68,30 @@ void left_wheel_isr() {
     left_count = left_count + lookup_table[enc_val & 0b1111];
 }
 
+
+long delta_theta(long deltaRight, long deltaLeft) {
+  return atan2( (deltaRight - deltaLeft) * PI * WHEEL_RADIUS, WHEEL_BASE/2 );
+}
+
+// forward distance traveled in robot frame, use cos or sin to calculate in world frame
+long delta_x_robot(long deltaRight, long deltaLeft) {
+  return (deltaRight + deltaLeft) * PI * WHEEL_RADIUS;
+}
+
 void loop() {
+  prev_left_count = left_count;
+  prev_right_count = right_count;
   qtr.read(sensorValues);
 
-  Serial.print(left_count);
-  Serial.println();
+//  Serial.print(left_count);
+//  Serial.println();
 
+  long deltaRight = right_count - prev_right_count;
+  long deltaLeft = left_count - prev_left_count;
+  theta_world += delta_theta(deltaRight, deltaLeft);
+  x_world += cos(theta_world) * delta_x_robot(deltaRight, deltaLeft); // some error since theta is not constant
+  y_world += sin(theta_world) * delta_x_robot(deltaRight, deltaLeft);
 
-  delay(100);
+  Serial.println(String(prev_left_count) + " " + String(left_count));
+  delay(500);
 }
