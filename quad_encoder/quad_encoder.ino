@@ -5,7 +5,6 @@ QTRSensors qtr;
 
 const long WHEEL_BASE = 12000; // width between wheels (in μm? smaller units are useful to avoid floats)
 const long WHEEL_RADIUS = 3500; // should be same unit as WHEEL_BASE
-//const uint8_t NUM_DIVISIONS
 const uint8_t SensorCount = 4;
 uint16_t sensorValues[SensorCount];
 
